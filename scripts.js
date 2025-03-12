@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import GUI from 'lil-gui'
 
 function init() {
     // create a scene, that will hold all our elements such as objects, cameras and lights.
@@ -13,27 +14,73 @@ function init() {
         width: window.innerWidth,
         height: window.innerHeight,
     }
+    let gui = new GUI()
+    let vertices = []
+    let bufferGeometry
+    let PointsMaterial
+    let points
+    const myObject = {
+        count: 1000
+    }
+
+    gui.add(myObject,'count')
+    .min(10)
+    .max(10000)
+    .step(1)
+    .name('StarDust')
+    .onChange(value =>{
+        particlesDebug(value)
+    })
+    
+    
+    function particlesDebug(value) {
+        // Avoids memory leaks/Stacking 
+        bufferGeometry.dispose()
+        PointsMaterial.dispose()
+        scene.remove(points)
+        vertices = []
+    
+    
+        // Reassigning new values 
+        for (let index = 0; index < value ; index++) {
+            const x = THREE.MathUtils.randFloatSpread( 50 );
+            const y = THREE.MathUtils.randFloatSpread( 50 );
+            const z = THREE.MathUtils.randFloatSpread( 50 );
+            // console.log(THREE.MathUtils.randFloatSpread.toString());
+            vertices.push(x,y,z)
+        }    
+    
+        bufferGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
+        PointsMaterial = new THREE.PointsMaterial({
+            size: 0.01,
+            sizeAttenuation: true
+        })
+    
+        points = new THREE.Points(bufferGeometry,PointsMaterial)
+        scene.add(points)
+    }
+
+    for (let index = 0; index < myObject.count ; index++) {
+        const x = THREE.MathUtils.randFloatSpread( 50 );
+        const y = THREE.MathUtils.randFloatSpread( 50 );
+        const z = THREE.MathUtils.randFloatSpread( 50 );
+        // console.log(THREE.MathUtils.randFloatSpread.toString());
+        vertices.push(x,y,z)
+    }    
+        
+    bufferGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
+    PointsMaterial = new THREE.PointsMaterial({
+        size: 0.1,
+        color: 'red',
+        sizeAttenuation: true
+    });
+    
+    points = new THREE.Points(bufferGeometry,PointsMaterial)
+    scene.add(points)
+    
+    
 
 
-const particleGeometry = new THREE.SphereGeometry(1,32,32)
-const particleMaterial = new THREE.PointsMaterial()
-particleMaterial.size = 0.1
-particleMaterial.sizeAttenuation = true
-particleMaterial.vertexColors = false
-const count = 1000
-const vertices = []
-
-for (let index = 0; index < count; index++) {
-
-    const x = THREE.MathUtils.randFloatSpread(20) * 10
-    const y = THREE.MathUtils.randFloatSpread(20) * 10
-    const z = THREE.MathUtils.randFloatSpread(20) * 10
-    vertices.push(x,y,z)
-}
-
-particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
-const particleMesh = new THREE.Points(particleGeometry,particleMaterial)
-scene.add(particleMesh)
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(sizes.width, sizes.height);
