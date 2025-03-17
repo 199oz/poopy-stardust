@@ -15,70 +15,86 @@ function init() {
         height: window.innerHeight,
     }
     let gui = new GUI()
-    let vertices = []
-    let bufferGeometry
-    let PointsMaterial
-    let points
     const myObject = {
         count: 1000
     }
+    let textureLoader = new THREE.TextureLoader()
+    let particleTexture = textureLoader.load('/particles/1.png')
+
 
     gui.add(myObject,'count')
     .min(10)
     .max(10000)
     .step(1)
-    .name('StarDust')
+    .name('[particleCounts]')
     .onChange(value =>{
         particlesDebug(value)
     })
     
-    
     function particlesDebug(value) {
         // Avoids memory leaks/Stacking 
-        bufferGeometry.dispose()
-        PointsMaterial.dispose()
-        scene.remove(points)
-        vertices = []
+        particlesGeometry.dispose()
+        particleMaterial.dispose()
+        scene.remove(particles)
+        positions = new Float32Array(value * 3)
+        console.log(positions)
     
-    
-        // Reassigning new values 
-        for (let index = 0; index < value ; index++) {
-            const x = THREE.MathUtils.randFloatSpread( 50 );
-            const y = THREE.MathUtils.randFloatSpread( 50 );
-            const z = THREE.MathUtils.randFloatSpread( 50 );
-            // console.log(THREE.MathUtils.randFloatSpread.toString());
-            vertices.push(x,y,z)
-        }    
-    
-        bufferGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
-        PointsMaterial = new THREE.PointsMaterial({
-            size: 0.01,
-            sizeAttenuation: true
-        })
-    
-        points = new THREE.Points(bufferGeometry,PointsMaterial)
-        scene.add(points)
+        for(let i = 0; i < value * 3; i++) 
+            {
+                positions[i] = (Math.random() - 0.5) * 15
+                colors[i] = Math.random() 
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+            particleMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                sizeAttenuation: true,
+                // color: 'orange',
+                map: particleTexture,
+                transparent: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true
+            })
+            
+            particles = new THREE.Points(particlesGeometry,particleMaterial)
+            scene.add(particles)
     }
 
-    for (let index = 0; index < myObject.count ; index++) {
-        const x = THREE.MathUtils.randFloatSpread( 50 );
-        const y = THREE.MathUtils.randFloatSpread( 50 );
-        const z = THREE.MathUtils.randFloatSpread( 50 );
-        // console.log(THREE.MathUtils.randFloatSpread.toString());
-        vertices.push(x,y,z)
-    }    
-        
-    bufferGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
-    PointsMaterial = new THREE.PointsMaterial({
-        size: 0.1,
-        color: 'red',
-        sizeAttenuation: true
-    });
-    
-    points = new THREE.Points(bufferGeometry,PointsMaterial)
-    scene.add(points)
-    
-    
+
+// Geometry
+let particlesGeometry = new THREE.BufferGeometry()
+let count = 10000
+
+let positions = new Float32Array(count * 3 )
+let colors = new Float32Array(count * 3 )
+
+for(let i = 0; i < count * 3; i++) 
+{
+    positions[i] = (Math.random() - 0.5) * 15
+    colors[i] = Math.random() 
+}
+
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+let particleMaterial = new THREE.PointsMaterial({
+    size: 0.1,
+    sizeAttenuation: true,
+    // color: 'orange',
+    map: particleTexture,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
+})
+
+let particles = new THREE.Points(particlesGeometry,particleMaterial)
+scene.add(particles)
+
+
+
+
 
 
 
@@ -90,8 +106,14 @@ function init() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping=true
     controls.dampingFactor=0.02
+    const clock = new THREE.Clock()
+
     function tick() {
         requestAnimationFrame(tick);
+        const elapsedTime = clock.getElapsedTime()
+        // particles.rotation.x = elapsedTime * 0.3
+        // particles.rotation.y = -elapsedTime * 0.3
+        
         controls.update()
         renderer.render(scene, camera);
     }
